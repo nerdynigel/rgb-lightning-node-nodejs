@@ -50,6 +50,46 @@ const napi = require(addonPath)
 
 // ─── 2. SdkNode wrapper ─────────────────────────────────────────────────
 
+// Additive exact swap API: requires standard JSON source access and raw JSON.
+// Callers supply canonical u64 decimal strings; native Serde still consumes u64.
+function exactU64 (value) {
+  if (typeof value !== 'string' || !/^(0|[1-9][0-9]{0,19})$/.test(value) ||
+      BigInt(value) > 18446744073709551615n) {
+    throw new TypeError('Expected canonical u64 decimal string')
+  }
+  return value
+}
+
+function requireExactJson () {
+  if (typeof JSON.rawJSON !== 'function' ||
+      JSON.parse('9007199254740993', (key, value, context) => context?.source) !== '9007199254740993') {
+    throw new Error('Exact swap API requires JSON source access and JSON.rawJSON')
+  }
+}
+
+function parseExactSwap (text) {
+  requireExactJson()
+  return JSON.parse(text, (key, value, context) => {
+    if (typeof value === 'number') return exactU64(context.source)
+    return value
+  })
+}
+
+function serializeExactSwap (request, amountFields = []) {
+  requireExactJson()
+  if (!request || Object.getPrototypeOf(request) !== Object.prototype) {
+    throw new TypeError('Expected plain swap request')
+  }
+  const copy = { ...request }
+  for (const key of amountFields) copy[key] = JSON.rawJSON(exactU64(copy[key]))
+  return JSON.stringify(copy, (key, value) => {
+    if (typeof value === 'number' || typeof value === 'bigint') {
+      throw new TypeError('Swap values must not be JS numbers or bigint')
+    }
+    return value
+  })
+}
+
 class SdkNode {
   constructor (inner) {
     this._inner = inner
@@ -197,6 +237,22 @@ class SdkNode {
 
   prepareCreateUtxos (request) {
     return JSON.parse(this._inner.prepareCreateUtxos(JSON.stringify(request)))
+  }
+
+  // Additive methods: legacy methods retain their existing contract.
+  makerInitExact (request) {
+    return parseExactSwap(this._inner.makerInit(serializeExactSwap(request, ['qty_from', 'qty_to', 'timeout_sec'])))
+  }
+  makerExecuteExact (request) {
+    return parseExactSwap(this._inner.makerExecute(serializeExactSwap(request)))
+  }
+  takerExact (request) {
+    return parseExactSwap(this._inner.taker(serializeExactSwap(request)))
+  }
+  listSwapsExact () { return parseExactSwap(this._inner.listSwaps()) }
+  getSwapExact (paymentHash, takerFlag) {
+    if (typeof takerFlag !== 'boolean') throw new TypeError('Expected taker boolean')
+    return parseExactSwap(this._inner.getSwap(paymentHash, takerFlag))
   }
 
   commitPreparedCreateUtxos (request) {

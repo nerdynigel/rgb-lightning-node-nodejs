@@ -74,6 +74,13 @@ export interface WalletSnapshotBalance {
   settled: DecimalString
   future: DecimalString
   spendable: DecimalString
+  // Additive exact APIs. Every native integer in responses is a decimal string.
+  makerInitExact(request: { qty_from: string; qty_to: string; timeout_sec: string; from_asset: string | null; to_asset: string | null }): ExactSwapValue
+  makerExecuteExact(request: Record<string, string | boolean | null>): ExactSwapValue
+  takerExact(request: { swapstring: string }): ExactSwapValue
+  listSwapsExact(): ExactSwapValue
+  getSwapExact(paymentHash: string, taker: boolean): ExactSwapValue
+
 }
 
 export interface WalletSnapshotBtc {
@@ -116,6 +123,8 @@ export interface WalletSnapshotChannel {
   claimable_onchain_sat: DecimalString
   outbound_capacity_msat: DecimalString
   inbound_capacity_msat: DecimalString
+
+export type ExactSwapValue = string | boolean | null | ExactSwapValue[] | { [key: string]: ExactSwapValue }
   next_outbound_htlc_limit_msat: DecimalString
   next_outbound_htlc_minimum_msat: DecimalString
   is_usable: boolean
