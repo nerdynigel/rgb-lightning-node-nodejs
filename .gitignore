@@ -23,3 +23,7 @@ index.d.ts.bk
 *.swp
 .idea/
 .vscode/
+
+.state/
+.env
+.env.*
