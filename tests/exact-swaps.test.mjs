@@ -82,4 +82,3 @@ test("exact wrapper rejects non-u64 native numbers without rounded values escapi
     assert.throws(() => node.getSwapExact("00".repeat(32), true));
   }
 });
-
