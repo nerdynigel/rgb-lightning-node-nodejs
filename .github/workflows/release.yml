@@ -15,9 +15,9 @@ name: Build and Release (Node)
 #   darwin-arm64, darwin-x64, linux-x64-gnu, linux-x64-musl, linux-arm64-gnu
 
 on:
-  repository_dispatch:
-    types: [rln-release]
-
+  # Manual-only. GitHub-hosted runners are opt-in (Board, 2026-09-30): a
+  # release is started by an authenticated actor dispatching this workflow,
+  # never by an inbound repository_dispatch, push or pull_request event.
   workflow_dispatch:
     inputs:
       rln_version:
@@ -60,12 +60,7 @@ jobs:
 
       - name: Resolve RLN version
         id: version
-        run: |
-          if [ "${{ github.event_name }}" == "repository_dispatch" ]; then
-            echo "rln=${{ github.event.client_payload.version }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "rln=${{ inputs.rln_version }}" >> "$GITHUB_OUTPUT"
-          fi
+        run: echo "rln=${{ inputs.rln_version }}" >> "$GITHUB_OUTPUT"
 
       - name: Clone and patch rgb-lightning-node
         env:
@@ -161,12 +156,7 @@ jobs:
       - name: Resolve RLN version
         id: version
         shell: bash
-        run: |
-          if [ "${{ github.event_name }}" == "repository_dispatch" ]; then
-            echo "rln=${{ github.event.client_payload.version }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "rln=${{ inputs.rln_version }}" >> "$GITHUB_OUTPUT"
-          fi
+        run: echo "rln=${{ inputs.rln_version }}" >> "$GITHUB_OUTPUT"
 
       - name: Clone and patch rgb-lightning-node
         shell: bash
@@ -267,12 +257,7 @@ jobs:
 
       - name: Resolve RLN version
         id: version
-        run: |
-          if [ "${{ github.event_name }}" == "repository_dispatch" ]; then
-            echo "rln=${{ github.event.client_payload.version }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "rln=${{ inputs.rln_version }}" >> "$GITHUB_OUTPUT"
-          fi
+        run: echo "rln=${{ inputs.rln_version }}" >> "$GITHUB_OUTPUT"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

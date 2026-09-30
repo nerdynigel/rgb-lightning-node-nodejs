@@ -15,7 +15,7 @@ by manually dispatching the workflow or by adding the `ci:run` label to a PR.
 | Workflow | Trigger before | Trigger after | Run path |
 |---|---|---|---|
 | `.github/workflows/ci.yml` | `pull_request` (any activity type), `push` (`main`, `iris-wallet`) | `workflow_dispatch`, `pull_request: [labeled]`; `contract` job gated on `if: github.event_name == 'workflow_dispatch' \|\| github.event.label.name == 'ci:run'` | Manual dispatch, or `ci:run` label on a PR |
-| `.github/workflows/release.yml` | `repository_dispatch: [rln-release]`, `workflow_dispatch` (input `rln_version`) | unchanged (already opt-in) | Explicit authenticated `repository_dispatch` API call, or manual dispatch |
+| `.github/workflows/release.yml` | `repository_dispatch: [rln-release]`, `workflow_dispatch` (input `rln_version`) | `workflow_dispatch` only (manual); input `rln_version` required — **updated by THE-405** | Manual dispatch only |
 
 ### `repository_dispatch` review
 
@@ -27,6 +27,12 @@ It is an explicit opt-in path and is treated as compliant by the accepted THE-39
 policy (same classification as the `repository_dispatch` bump workflows). It is
 therefore left unchanged. The workflow's other entry point, `workflow_dispatch`, is
 manual. No ordinary push/PR activity can start either workflow after this change.
+
+> **Superseded by THE-405** (`docs/THE-405-RELEASE-MANUAL-TRIGGER.md`). The Board
+> residual from THE-402 required the inbound `repository_dispatch: [rln-release]`
+> trigger to be removed as well, so `release.yml` is now manual-only
+> (`workflow_dispatch` with required `rln_version`). The paragraph above records the
+> THE-400 position and is no longer the current state.
 
 ## 2. Host-side validation
 
